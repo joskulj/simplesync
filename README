@@ -1,0 +1,86 @@
+simplesync
+
+Note
+----
+This is an early alpha version in an early stage of development. Don't use 
+it in productive environments.
+
+Basic idea
+----------
+simplesync is a tool for easy file syncronization. You can use it to 
+syncronize the files of an directory using a central sharing ressource.
+Different kinds of sharing ressources like the filesystem or FTP server
+are supported. You can use sharing via filesystem to syncronize files
+over shared network volumes or USB volumes.
+
+Installation
+------------
+You can download the source from Launchpad and build a Debian package:
+
+(1) bzr branch lp:~joskulj/simplesync/trunk
+(2) cd trunk
+(3) make builddeb
+
+You should now find a subdirectory builddeb, which contians the created
+Debian package. Install this package
+
+(1) cd builddeb
+(2) sudo dpkg -i simplesync*.deb
+
+The exact name of the Debian Package depends on the current version 
+number and the architecture of your machine.
+
+To uninstall the package just execute:
+
+    sudo dpkg -r simplesync
+
+Configuration
+-------------
+To use simplesync you have to create a configuration file named .simplesyncrc
+in your home directory. This configuration file should look like this.
+
+[configkey]
+type=filesystem
+root=/home/user
+server-directory=/mnt/server/simplesync
+
+A configuration file consists of following elements:
+
+- configkey
+  A configuration file can contain one or more configuration entries. Each
+  entry is identified by a configuration key, which has to be unique within
+  the configuration file. A configuration key must be enclosed in square
+  brackets and is followed by the needed attributes.
+- type
+  The type attribute specifies the protocol used for syncronization. Currently
+  only syncronization via filesystem (e.g. shared network volumes). Other
+  types of syncronization will be supported in the future.
+- root
+  The root attribute specifies the directory that can be synchronized. The
+  directory assigned to this attribute and all directories below can be
+  syncronized via simplesync. It's a good idea to specify the user's home
+  directory, so all directories of this user can be synchronized.
+- server-directory
+  The server-directory is the directory where the syncronized files a shared
+  and exchange. You should use the mount point of a shared network volume
+  or and USB media as a server-directory.
+
+Usage
+-----
+simplesync is called from the command line:
+
+    ssync -c <configenntry [-d <directory>] [-r]
+
+You must use ssync with the parameter -c followed by the configuration key
+of the configuration to use.
+
+Optionally you can use the parameters -d and -r. The parameter -d can be used
+to specify the directory to syncronize. If you omit this parameter, the current
+directory will be syncronized. If you use the parameter -r, all subdirectories
+will be syncronized recursively as well.
+
+Copyright
+---------
+Copyright (c) 2010 Jochen Skulj <jochen@jochenskulj.de>
+Published under GNU Public License
+

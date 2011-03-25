@@ -1,0 +1,19 @@
+Source: simplesync
+Section: misc
+Priority: extra
+Maintainer: Jochen Skulj <ubuntu@jochenskulj.de>
+Build-Depends: cdbs, debhelper (>= 7.0.50~), python (>=2.4), python-support
+XS-Python-Version: >=2.4
+Standards-Version: 3.8.4
+Homepage: http://www.jochenskulj.de/
+
+Package: simplesync
+Architecture: any
+Depends: ${misc:Depends}, python-crypto
+Description: simple tool for syncronizing files
+ simplesync is a tool for syncronizing files on different PCs by
+ using a central ressource. Initially it uploads all files to
+ a server ressource so that you can download the files on other
+ machines. Using simplesync again on the same directory will only
+ upload and download modified files. Currently only filesystem
+ (e.g. shared network directories) are supported for syncronization.
