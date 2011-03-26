@@ -153,13 +153,13 @@
                   <placeholder/>
                 </child>
                 <child>
-                  <widget class="GtkButton" id="button_syncronize">
-                    <property name="label" translatable="yes">_Syncronize</property>
+                  <widget class="GtkButton" id="button_synchronize">
+                    <property name="label" translatable="yes">_Synchronize</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_underline">True</property>
-                    <signal name="clicked" handler="on_syncronize"/>
+                    <signal name="clicked" handler="on_synchronize"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>

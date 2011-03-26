@@ -47,7 +47,7 @@ class MainWindow:
 		dic = {"on_mainwindow_destroy" : self.on_exit
 				, "on_add_directory" : self.on_add_directory
 				, "on_remove_directory" : self.on_remove_directory
-			    , "on_syncronize" : self.on_syncronize
+			    , "on_synchronize" : self.on_synchronize
 				, "on_exit" : self.on_exit }
 		widget_tree.signal_autoconnect(dic)
 		mainwindow = widget_tree.get_widget(windowname)
@@ -146,14 +146,14 @@ class MainWindow:
 			print value
 			item = self._directory_model.remove(iterator)
 
-	def on_syncronize(self, widget):
+	def on_synchronize(self, widget):
 		"""
 		handles the event to syncronize the files
 		Parameters:
 		- widget
 		  widget that triggered the event
 		"""
-		print "syncronize"
+		print "synchronize"
 		for directory in self.get_directories():
 			print directory
 
