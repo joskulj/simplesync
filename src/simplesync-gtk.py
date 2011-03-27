@@ -156,6 +156,8 @@ class MainWindow:
 		print "synchronize"
 		for directory in self.get_directories():
 			print directory
+		dialog = ProgressDialog(self.get_directories())
+		dialog.run()
 
 	def on_exit(self, widget):
 		"""
@@ -169,7 +171,50 @@ class MainWindow:
 			self._config_list.add_directory(directory)
 		self._config_list.save()
 		gtk.main_quit() 
-		
+
+class ProgressDialog:
+	"""
+	implements the dialog to show the progress of synchronization
+	"""
+
+	def __init__(self, dirlist):
+		"""
+		creates an instance
+		Parameters:
+		- dirlist
+		  lists of directories to synchronize
+		"""
+		self._dirlist = dirlist
+		self._widget_tree = self.init_widget_tree()
+
+	def init_widget_tree(self):
+		"""
+		initializes the widget tree
+		Returns:
+		- created widget tree
+		"""
+		gladefile = "simplesync.glade"
+		windowname = "progressdialog"
+		widget_tree = gtk.glade.XML(gladefile, windowname) 
+		return widget_tree
+
+	def run(self):
+		"""
+		runs the dialog
+		"""
+		widget = self._widget_tree.get_widget("progressdialog")
+		widget.run()
+
+	def on_button_action(self, widget):
+		"""
+		handles a click on the button
+		Parameters:
+		- widget
+		  widget that triggered the event
+		"""
+		print "button action"
+		pass
+
 if __name__ == "__main__":
 	window = MainWindow()
 	gtk.main()
