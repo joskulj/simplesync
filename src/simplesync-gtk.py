@@ -196,6 +196,8 @@ class ProgressDialog:
 		gladefile = "simplesync.glade"
 		windowname = "progressdialog"
 		widget_tree = gtk.glade.XML(gladefile, windowname) 
+		dic = {"on_button_action" : self.on_button_action }
+		widget_tree.signal_autoconnect(dic)
 		return widget_tree
 
 	def run(self):
