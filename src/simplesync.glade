@@ -193,15 +193,41 @@
   <widget class="GtkDialog" id="progressdialog">
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Synchronizing ...</property>
+    <property name="default_width">550</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
+    <signal name="destroy" handler="on_progressdialog_destroy"/>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
-          <placeholder/>
+          <widget class="GtkVBox" id="vbox1">
+            <property name="visible">True</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <widget class="GtkLabel" id="label_directory">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">label</property>
+              </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">1</property>
+          </packing>
         </child>
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area">
@@ -214,7 +240,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_underline">True</property>
-                <signal name="activate" handler="on_button_action"/>
+                <signal name="clicked" handler="on_button_action"/>
               </widget>
               <packing>
                 <property name="expand">False</property>

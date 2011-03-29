@@ -18,6 +18,9 @@ import dis
 import gtk
 import gtk.glade
 import pygtk
+import time
+
+from threading import Thread
 
 from syncconfig import *
 
@@ -186,6 +189,8 @@ class ProgressDialog:
 		"""
 		self._dirlist = dirlist
 		self._widget_tree = self.init_widget_tree()
+		self._stop_flag = False
+		self._thread = None
 
 	def init_widget_tree(self):
 		"""
@@ -196,16 +201,39 @@ class ProgressDialog:
 		gladefile = "simplesync.glade"
 		windowname = "progressdialog"
 		widget_tree = gtk.glade.XML(gladefile, windowname) 
-		dic = {"on_button_action" : self.on_button_action }
+		dic = { "on_button_action" : self.on_button_action,
+		        "on_progressdialog_destroy" : self.on_progressdialog_destroy }
 		widget_tree.signal_autoconnect(dic)
 		return widget_tree
+
+	def get_stop_flag(self):
+		"""
+		Returns:
+		- True:  stop synchronizing
+		- False: continue synchronizing
+		"""
+		return self._stop_flag
+
+	def finished(self):
+		"""
+		signals that the task is finished
+		"""
+		self._stop_flag = True
+		widget = self._widget_tree.get_widget("button")
+		widget.set_label("_Close")
 
 	def run(self):
 		"""
 		runs the dialog
 		"""
 		widget = self._widget_tree.get_widget("progressdialog")
+		self._thread = SyncThread(self)
+		self._thread.start()
 		widget.run()
+
+	def set_directory(self, directory):
+		widget = self._widget_tree.get_widget("label_directory")
+		widget.set_text(directory)
 
 	def on_button_action(self, widget):
 		"""
@@ -214,9 +242,52 @@ class ProgressDialog:
 		- widget
 		  widget that triggered the event
 		"""
-		print "button action"
-		pass
+		if not self._stop_flag:
+			self._stop_flag = True
+		else:
+			dlg = self._widget_tree.get_widget("progressdialog")
+			dlg.destroy()
+
+	def on_progressdialog_destroy(self, widget):
+		"""
+		handles the destroy event
+		Parameters:
+		- widget
+		  widget that triggered the event
+		"""
+		self._stop_flag = True
+		time.sleep(0.5)
+
+class SyncThread(Thread):
+	"""
+	Thread class to syncronize the files
+	"""
+
+	def __init__(self, progressdialog):
+		"""
+		creates an instance
+		Parameters:
+		- progressdialog
+		  ProgressDialog that controls the thread
+		"""
+		Thread.__init__(self)
+		self._progressdialog = progressdialog
+
+	def run(self):
+		"""
+		runs the thread
+		"""
+		c = 0
+		m = 100
+		while c < m:
+			c = c + 1
+			self._progressdialog.set_directory(str(c))
+			if self._progressdialog.get_stop_flag():
+				break
+			time.sleep(0.3)
+		self._progressdialog.finished()
 
 if __name__ == "__main__":
+	gtk.gdk.threads_init()
 	window = MainWindow()
 	gtk.main()
