@@ -336,7 +336,6 @@ class SyncThread(Thread):
 		dlg = self._progressdialog
 		for entry in dlg.get_directory_list():
 			dlg.set_directory(entry)
-			# self._progressdialog.add_detail_line(str(c))
 			if dlg.get_stop_flag():
 				break
 			time.sleep(0.3)
