@@ -146,7 +146,6 @@ class MainWindow:
 		if iterator:
 			position = selection.get_selected_rows()
 			value = model.get_value(iterator, 0)
-			print value
 			item = self._directory_model.remove(iterator)
 
 	def on_synchronize(self, widget):
@@ -156,9 +155,6 @@ class MainWindow:
 		- widget
 		  widget that triggered the event
 		"""
-		print "synchronize"
-		for directory in self.get_directories():
-			print directory
 		dialog = ProgressDialog(self.get_directories())
 		dialog.run()
 
@@ -191,6 +187,10 @@ class ProgressDialog:
 		self._widget_tree = self.init_widget_tree()
 		self._stop_flag = False
 		self._thread = None
+		self._directories_count = len(self._dirlist)
+		self._directories_current = 0
+		self._files_count = 0
+		self._files_current = 0
 
 	def init_widget_tree(self):
 		"""
@@ -205,6 +205,13 @@ class ProgressDialog:
 		        "on_progressdialog_destroy" : self.on_progressdialog_destroy }
 		widget_tree.signal_autoconnect(dic)
 		return widget_tree
+
+	def get_directory_list(self):
+		"""
+		Returns:
+		- the list of directories
+		"""
+		return self._dirlist
 
 	def get_stop_flag(self):
 		"""
@@ -231,9 +238,58 @@ class ProgressDialog:
 		self._thread.start()
 		widget.run()
 
+	def set_directories_count(self, count):
+		"""
+		sets the total count of directories
+		Parameters:
+		- count
+		  total counts of directories
+		"""
+		self._directories_count = count
+		self._directories_current = 0
+
 	def set_directory(self, directory):
-		widget = self._widget_tree.get_widget("label_directory")
-		widget.set_text(directory)
+		"""
+		sets the directory
+		Parameters:
+		- directory
+		  directory to display
+		"""
+		label = self._widget_tree.get_widget("label_directory")
+		label.set_text(directory)
+		self._directories_current = self._directories_current + 1
+		progressbar = self._widget_tree.get_widget("progressbar_directory")
+		fraction = float(self._directories_current) / float(self._directories_count)
+		progressbar.set_fraction(fraction)
+
+	def set_file(self, filename):
+		"""
+		sets the file
+		Parameters:
+		- filename
+		  filename to display
+		"""
+		label = self._widget_tree.get_widget("label_file")
+		label.set_text(filename)
+
+	def add_detail_line(self, line):
+		"""
+		adds a line to the detail field
+		Parameters:
+		- line
+		  line to add
+		"""
+		widget = self._widget_tree.get_widget("textview_detail")
+		buf = widget.get_buffer()
+		count = buf.get_char_count()
+		print count
+		text = ""
+		if count > 0:
+			text = text + "\n"
+		text = text + line
+		print text
+		iterator = buf.get_iter_at_offset(count)
+		buf.insert(iterator, text)
 
 	def on_button_action(self, widget):
 		"""
@@ -277,15 +333,14 @@ class SyncThread(Thread):
 		"""
 		runs the thread
 		"""
-		c = 0
-		m = 100
-		while c < m:
-			c = c + 1
-			self._progressdialog.set_directory(str(c))
-			if self._progressdialog.get_stop_flag():
+		dlg = self._progressdialog
+		for entry in dlg.get_directory_list():
+			dlg.set_directory(entry)
+			# self._progressdialog.add_detail_line(str(c))
+			if dlg.get_stop_flag():
 				break
 			time.sleep(0.3)
-		self._progressdialog.finished()
+		dlg.finished()
 
 if __name__ == "__main__":
 	gtk.gdk.threads_init()
