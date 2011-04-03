@@ -13,43 +13,43 @@
 # GNU General Public License for more details.
 
 class ErrorLog(object):
-	"""
-	base class to manage occured errors
-	"""
+    """
+    base class to manage occured errors
+    """
 
-	def __init__(self):
-		"""
-		creates an instance
-		"""
-		self._errors = []
+    def __init__(self):
+        """
+        creates an instance
+        """
+        self._errors = []
 
-	def clear_errors(self):
-		"""
-		clears all errors
-		"""
-		self._errors = []
+    def clear_errors(self):
+        """
+        clears all errors
+        """
+        self._errors = []
 
-	def error(self, errormsg):
-		"""
-		reports an error
-		Parameters:
-		- errormsg
-		  error message to log
-		"""
-		self._errors.append(errormsg)
+    def error(self, errormsg):
+        """
+        reports an error
+        Parameters:
+        - errormsg
+          error message to log
+        """
+        self._errors.append(errormsg)
 
-	def has_errors(self):
-		"""
-		checks, if errors are logged 
-		Returns:
-		- True:  errors are logged
-		- False: no errors are logged
-		"""
-		return len(self._errors) > 0
+    def has_errors(self):
+        """
+        checks, if errors are logged 
+        Returns:
+        - True:  errors are logged
+        - False: no errors are logged
+        """
+        return len(self._errors) > 0
 
-	def get_errors(self):
-		"""
-		Returns:
-		- list of logged errors
-		"""
-		return self._errors
+    def get_errors(self):
+        """
+        Returns:
+        - list of logged errors
+        """
+        return self._errors
