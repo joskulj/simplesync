@@ -164,9 +164,8 @@ class SyncConfigList(object):
                     value = config.get_value(key)
                     config_file.write("%s = %s\n" % (key, value))
                 config_file.write("\n")
-                for directory in self._directories:
-                    config_file.write("[directory:%s]\n" % directory)
-                pass
+            for directory in self._directories:
+                config_file.write("[directory:%s]\n" % directory)
             config_file.close()
         except:
             result = False
