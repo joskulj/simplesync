@@ -22,7 +22,11 @@ import time
 
 from threading import Thread
 
+from localproperty import *
 from syncconfig import *
+from synccrypt import *
+from syncserver import *
+from syncprocessor import *
 
 class MainWindow:
     """
@@ -112,8 +116,14 @@ class MainWindow:
 
     def get_config(self):
         """
+        Returns:
+        - selected configuration to use
         """
-        return None
+        widget = self._widget_tree.get_widget("combobox_connections")
+        model = widget.get_model()
+        iterator = widget.get_active_iter()
+        config_name = model.get_value(iterator, 0)
+        return self._config_list.get_entry(config_name)
 
     def on_add_directory(self, widget):
         """
@@ -155,7 +165,7 @@ class MainWindow:
         - widget
           widget that triggered the event
         """
-        dialog = ProgressDialog(self.get_directories())
+        dialog = ProgressDialog(self.get_directories(), self.get_config())
         dialog.run()
 
     def on_exit(self, widget):
@@ -176,7 +186,7 @@ class ProgressDialog:
     implements the dialog to show the progress of synchronization
     """
 
-    def __init__(self, dirlist):
+    def __init__(self, dirlist, config):
         """
         creates an instance
         Parameters:
@@ -184,6 +194,7 @@ class ProgressDialog:
           lists of directories to synchronize
         """
         self._dirlist = dirlist
+        self._config = config
         self._widget_tree = self.init_widget_tree()
         self._stop_flag = False
         self._thread = None
@@ -212,6 +223,13 @@ class ProgressDialog:
         - the list of directories
         """
         return self._dirlist
+
+    def get_config(self):
+        """
+        Returns:
+        - configuration to use
+        """
+        return self._config
 
     def get_stop_flag(self):
         """
@@ -248,6 +266,16 @@ class ProgressDialog:
         self._directories_count = count
         self._directories_current = 0
 
+    def set_files_count(self, count):
+        """
+        sets the total count of files
+        Parameters:
+        - count
+          total counts of files
+        """
+        self._files_count = count
+        self._files_current = 0
+
     def set_directory(self, directory):
         """
         sets the directory
@@ -271,6 +299,10 @@ class ProgressDialog:
         """
         label = self._widget_tree.get_widget("label_file")
         label.set_text(filename)
+        self._files_current = self._files_current + 1
+        progressbar = self._widget_tree.get_widget("progressbar_file")
+        fraction = float(self._files_current) / float(self._files_count)
+        progressbar.set_fraction(fraction)
 
     def add_detail_line(self, line):
         """
@@ -333,13 +365,59 @@ class SyncThread(Thread):
         """
         runs the thread
         """
+        l = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
         dlg = self._progressdialog
         for entry in dlg.get_directory_list():
             dlg.set_directory(entry)
-            if dlg.get_stop_flag():
-                break
-            time.sleep(0.3)
+            # self.synchronize(entry)
+            dlg.set_files_count(len(l))
+            for item in l:
+                dlg.set_file(item)
+                if dlg.get_stop_flag():
+                    break
+                time.sleep(0.3)
         dlg.finished()
+
+    def synchronize(self, directory):
+        """
+        synchronizes a directory
+        Parameters:
+        - directory
+          directory to synchronize
+        """
+        dlg = self._progressdialog
+        config = dlg.get_config()
+        # TODO: implement synchronization
+        root = os.path.expanduser("~")
+        local = SyncLocal(root)
+        server = SyncServer(config, local, directory)
+        processor = SyncProcessor(local, directory, server)
+        # TODO: implement crypting support
+        # encryptionflag = config.get_value(CONFIG_KEY_ENCRYPTION)
+        # if encryptionflag:
+        # if encryptionflag.lower().strip() == "true":
+        #     synccrypt = SyncCrypt(False)
+        #     synccrypt.enter_password(True)
+        #     processor.set_encryption(synccrypt)
+        processor.startup()
+        dlg.set_files_count(processor.get_action_count())
+        # TODO: implement crypting support
+        # if processor.needs_encryption():
+        #     synccrypt = SyncCrypt(False)
+        #     synccrypt.enter_password(false) 
+        #     processor.set_encryption(synccrypt)
+        while processor.has_open_actions():
+            action = processor.get_action_title()
+            # dlg.set_file(action)
+            processor.process_next_action()
+            if server.has_errors():
+                for error in server.get_errors():
+                    # output.output("ERROR: " + error)
+                    server.clear_errors()
+            # if recursive:
+            #     for subdir in get_subdirectories(directory):
+            #         syncronize(subdir, output, True)
+        processor.shutdown()
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()
