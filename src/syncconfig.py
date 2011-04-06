@@ -12,7 +12,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import crypt
 import os.path
+import random
 
 CONFIG_PATH = "~/.simplesyncrc"
 
@@ -29,6 +31,8 @@ class SyncConfig(object):
           name of the configuration entry
         """
         self._name = name
+        self._password = None
+        self._crypt_key = None
         self._dict = { }
 
     def get_name(self):
@@ -47,7 +51,70 @@ class SyncConfig(object):
         - value
           property value to set
         """
-        self._dict[key] = value 
+        self._dict[key] = value
+
+    def set_password(self, password, encrypt=True):
+        """
+        sets the password
+        Parameters:
+        - password
+          password to set
+        - encrypt
+          flag if the password should be encrypted
+        """
+        if encrypt:
+            if not self._crypt_key:
+                random_number = int(random.random() * 100000000)
+                self._crypt_key = str(random_number)
+            self._password = crypt.crypt(password, self._crypt_key)
+        else:
+            self._password = password
+
+    def set_crypt_key(self, crypt_key):
+        """
+        sets the random key to crypt the password
+        Parameters:
+        - crypt_key
+          random key to crypt the password
+        """
+        self._crypt_key = crypt_key
+
+    def check_password(self, password):
+        """
+        checks a password
+        Parameters:
+        Returns:
+        - True:  password match
+        - False: password doesn't match
+        """
+        result = False
+        if self._crypt_key:
+            crypt_password = crypt.crypt(password, self._crypt_key)
+            if crypt_password == self._password:
+                result = True
+        return result
+
+    def has_password(self):
+        """
+        Returns:
+        - True:  a password is set
+        - False: no password is set
+        """
+        return self._password != None
+
+    def get_password(self):
+        """
+        Returns:
+        - encrypted passwort
+        """
+        return self._password
+
+    def get_crypt_key(self):
+        """
+        Returns:
+        - random key to crypt the password
+        """
+        return self._crypt_key
 
     def has_value(self, key):
         """
@@ -132,6 +199,16 @@ class SyncConfigList(object):
         """
         return self._directories
 
+    def add_entry(self, entry):
+        """
+        adds a new entry
+        Parameters:
+        - entry
+          entry to add
+        """
+        self._list.append(entry)
+        self._dict[entry.get_name()] = entry
+
     def clear_directories(self):
         """
         clears the list of directories
@@ -158,8 +235,15 @@ class SyncConfigList(object):
         result = False
         try:
             config_file = open(filepath, "w")
+            config_file.write("# simplesync configuration file")
             for config in self._list:
                 config_file.write("\n[config:%s]\n" % config.get_name())
+                if config.has_password():
+                    crypt_key = config.get_crypt_key()
+                    if crypt_key:
+                        config_file.write("[cryptkey:%s]\n" % crypt_key)
+                    password = config.get_password()
+                    config_file.write("[password:%s]\n" % password)
                 for key in config.get_keys():
                     value = config.get_value(key)
                     config_file.write("%s = %s\n" % (key, value))
@@ -191,6 +275,12 @@ class SyncConfigList(object):
                             self._list.append(new_entry)
                             self._dict[new_entry.get_name()] = new_entry
                         new_entry = SyncConfig(self.get_name(line))
+                    if self.is_password(line):
+                        if new_entry:
+                            new_entry.set_password(self.get_password(line), False)
+                    if self.is_crypt_key(line):
+                        if new_entry:
+                            new_entry.set_crypt_key(self.get_crypt_key(line))
                     if self.is_property(line):
                         key = self.get_key(line)
                         value = self.get_value(line)
@@ -221,6 +311,12 @@ class SyncConfigList(object):
 
     def is_directory(self, string):
         return string.startswith("[directory:") and string.endswith("]")
+
+    def is_password(self, string):
+        return string.startswith("[password:") and string.endswith("]")
+
+    def is_crypt_key(self, string):
+        return string.startswith("[cryptkey:") and string.endswith("]")
     
     def get_name(self, string):
         return string[8:len(string) - 1]
@@ -238,3 +334,9 @@ class SyncConfigList(object):
 
     def get_directory(self, string):
         return string[11:len(string) - 1]
+
+    def get_password(self, string):
+        return string[10:len(string) - 1]
+
+    def get_crypt_key(self, string):
+        return string[10:len(string) - 1]
