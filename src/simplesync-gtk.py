@@ -365,17 +365,13 @@ class SyncThread(Thread):
         """
         runs the thread
         """
-        l = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j" ]
         dlg = self._progressdialog
         for entry in dlg.get_directory_list():
             dlg.set_directory(entry)
-            # self.synchronize(entry)
-            dlg.set_files_count(len(l))
-            for item in l:
-                dlg.set_file(item)
-                if dlg.get_stop_flag():
-                    break
-                time.sleep(0.3)
+            self.synchronize(entry)
+            time.sleep(0.3)
+            if dlg.get_stop_flag():
+                break
         dlg.finished()
 
     def synchronize(self, directory):
@@ -408,7 +404,7 @@ class SyncThread(Thread):
         #     processor.set_encryption(synccrypt)
         while processor.has_open_actions():
             action = processor.get_action_title()
-            # dlg.set_file(action)
+            dlg.set_file(action)
             processor.process_next_action()
             if server.has_errors():
                 for error in server.get_errors():
