@@ -210,7 +210,7 @@ class SyncServer(ErrorLog):
           optional SyncCrypt instance to use
         """
         if self._instance:
-            self._instance.upload(fileproperty, synncrypt)
+            self._instance.upload(fileproperty, synccrypt)
         else:
             self.error("upload() failed. No server instance.")
 

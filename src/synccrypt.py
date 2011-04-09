@@ -169,6 +169,7 @@ class SyncCrypt(object):
         """
         if guiflag:
             # TODO: implement GUI
+            pass
         else:
             if repeat:
                 while True:
@@ -188,7 +189,7 @@ class SyncCrypt(object):
         Parameters:
         - filename
           name of the file to encrypt. The encrypted filename gets
-          the suffix ».encrypt«
+          the suffix ".encrypt"
         Returns:
         - name of the encrypted file
         """
@@ -204,7 +205,7 @@ class SyncCrypt(object):
         Parameters:
         - filename
           name of the file to decrypt. The filemane has to be end
-          with the suffix ».encrypt«
+          with the suffix ".encrypt"
         Returns:
         - name of the decrypted files
         """

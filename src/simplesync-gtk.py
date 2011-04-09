@@ -28,7 +28,7 @@ from synccrypt import *
 from syncserver import *
 from syncprocessor import *
 
-class MainWindow:
+class MainWindow(object):
     """
     implements the main window of the application
     """
@@ -181,7 +181,7 @@ class MainWindow:
         self._config_list.save()
         gtk.main_quit() 
 
-class ProgressDialog:
+class ProgressDialog(object):
     """
     implements the dialog to show the progress of synchronization
     """
@@ -192,6 +192,8 @@ class ProgressDialog:
         Parameters:
         - dirlist
           lists of directories to synchronize
+        - config
+          config to use for synchronization
         """
         self._dirlist = dirlist
         self._config = config
@@ -414,6 +416,45 @@ class SyncThread(Thread):
             #     for subdir in get_subdirectories(directory):
             #         syncronize(subdir, output, True)
         processor.shutdown()
+
+class PasswordDialog(object):
+    """
+    implements the dialog to ask for the password
+    """
+
+    def __init__(self, repeat_flag):
+        """
+        creates an instance
+        Parameters:
+        - repeat_flag
+          flag if a repeat input of the password is required
+        """
+        self._widget_tree = self.init_widget_tree(repeat_flag)
+
+    def init_widget_tree(self, repeat_flag):
+        """
+        initializes the widget tree
+         Parameters:
+        - repeat_flag
+          flag if a repeat input of the password is required
+        Returns:
+        - created widget tree
+        """
+        gladefile = "simplesync.glade"
+        windowname = "passworddialog"
+        widget_tree = gtk.glade.XML(gladefile, windowname) 
+        # TODO: implement connecting signals
+        # dic = { "on_button_action" : self.on_button_action,
+        #        "on_progressdialog_destroy" : self.on_progressdialog_destroy }
+        # widget_tree.signal_autoconnect(dic)
+        return widget_tree
+
+    def run(self):
+        """
+        runs the dialog
+        """
+        widget = self._widget_tree.get_widget("passworddialog")
+        widget.run()
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()

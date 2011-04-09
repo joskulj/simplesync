@@ -183,7 +183,7 @@ class SyncProcessor(object):
         self._actionindex = 0
         self._directory = directory
         self._synccrypt = None
-        self._encryptuploads = False
+        self._encryptupload = False
 
     def append_action(self, newaction):
         """
