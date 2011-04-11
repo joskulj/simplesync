@@ -160,6 +160,15 @@ class SyncCrypt(object):
         elen = len(ENCRYPTION_EXTENSION)
         return filename[0:flen - elen]
 
+    def set_password(self, key):
+        """
+        sets the password
+        Parameters:
+        - key
+          password to set
+        """
+        self._key = key
+
     def enter_password(self, repeat=False):
         """
         prompts the user to enter a password

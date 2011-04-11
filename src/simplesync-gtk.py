@@ -28,6 +28,10 @@ from synccrypt import *
 from syncserver import *
 from syncprocessor import *
 
+CONFIG_KEY_ENCRYPTION = "encryption"
+
+crypt_map = { }
+
 class MainWindow(object):
     """
     implements the main window of the application
@@ -383,6 +387,9 @@ class SyncThread(Thread):
         - directory
           directory to synchronize
         """
+        d = PasswordDialog(True)
+        d.run()
+        print d.get_password()
         dlg = self._progressdialog
         config = dlg.get_config()
         # TODO: implement synchronization
@@ -417,6 +424,68 @@ class SyncThread(Thread):
             #         syncronize(subdir, output, True)
         processor.shutdown()
 
+    def needs_password(self, processor, config):
+        """
+        checks if a password is required
+        Parameters:
+        - processor
+          processor to use
+        - config
+          config to use
+        Returns:
+        - True:  password is required
+        - False: no password required
+        """
+        result = False
+        encryptionflag = config.get_value(CONFIG_KEY_ENCRYPTION)
+        if encryptionflag:
+            if encryptionflag.lower().strip() == "true":
+                for action in processor.get_actions():
+                    if action.get_action == ACTION_UPLOAD:
+                        result = True
+                        break
+        else:
+            if processor.needs_encryption():
+                result = False
+        return result
+
+    def init_crypt(self, config):
+        """
+        inits the crypt object
+        Parameters:
+        - config
+          config to use
+        Returns:
+        - crypt object to use
+        """
+        result = None
+        name = config.get_name()
+        if crypt_map.has_key(name):
+            result = crypt_map[name]
+        else:
+            password = None
+            if config.has_password():
+                check_flag = False
+                while not check_flag:
+                    dlg = PasswordDialog(False)
+                    dlg.run()
+                    password = dlg.get_password()
+                    if config.check_password(password):
+                         check_flag = True
+                    else:
+                        # TODO: show error box
+                        print "Password does not match"
+                        pass
+            else:
+                dlg = PasswordDialog(True)
+                dlg.run()
+                password = dlg.run()
+            result = SyncCrypt()
+            result.set_password(password)
+            crypt_maap[name] = result
+        return result
+
+
 class PasswordDialog(object):
     """
     implements the dialog to ask for the password
@@ -429,6 +498,7 @@ class PasswordDialog(object):
         - repeat_flag
           flag if a repeat input of the password is required
         """
+        self._password = None
         self._widget_tree = self.init_widget_tree(repeat_flag)
 
     def init_widget_tree(self, repeat_flag):
@@ -443,11 +513,17 @@ class PasswordDialog(object):
         gladefile = "simplesync.glade"
         windowname = "passworddialog"
         widget_tree = gtk.glade.XML(gladefile, windowname) 
-        # TODO: implement connecting signals
-        # dic = { "on_button_action" : self.on_button_action,
-        #        "on_progressdialog_destroy" : self.on_progressdialog_destroy }
+        dic = { "on_button_ok_clicked" : self.on_button_ok_clicked,
+                "on_button_cancel_clicked" : self.on_button_cancel_clicked }
         # widget_tree.signal_autoconnect(dic)
         return widget_tree
+
+    def get_password(self):
+        """
+        Returns:
+        - the entered password
+        """
+        return self._password
 
     def run(self):
         """
@@ -455,6 +531,27 @@ class PasswordDialog(object):
         """
         widget = self._widget_tree.get_widget("passworddialog")
         widget.run()
+
+    def on_button_ok_clicked(self, widget):
+        """
+        handles the click on the OK button
+        Parameters:
+        - widget
+          widget that triggered the event
+        """
+        self._password = "ok"
+        dlg = self._widget_tree.get_widget("passworddialog")
+        dlg.destroy()
+
+    def on_button_cancel_clicked(self, widget):
+        """
+        handles the click on the Cancel button
+        Parameters:
+        - widget that triggered the event
+        """
+        self._password = "cancel"
+        dlg = self._widget_tree.get_widget("passworddialog")
+        dlg.destroy()
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()

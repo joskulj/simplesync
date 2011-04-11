@@ -258,6 +258,13 @@ class SyncProcessor(object):
         """
         return self._actionindex < len(self._actions)
 
+    def get_actions(self):
+        """
+        Returns:
+        - list of actions
+        """
+        return self._actions
+
     def get_action_count(self):
         """
         Returns:
