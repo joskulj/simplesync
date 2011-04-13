@@ -104,6 +104,44 @@ class MainWindow(object):
             view.set_active(0)
         return model
 
+    def init_crypt(self):
+        """
+        inits the crypt object
+        Returns:
+        - crypt object to use
+        """
+        result = None
+        config = self.get_config()
+        print config.get_name()
+        if config:
+            name = config.get_name()
+            if crypt_map.has_key(name):
+                result = crypt_map[name]
+            else:
+                password = None
+                if config.has_password():
+                    check_flag = False
+                    while not check_flag:
+                        dlg = PasswordDialog(False)
+                        dlg.run()
+                        password = dlg.get_password()
+                        if config.check_password(password):
+                             check_flag = True
+                        else:
+                            # TODO: show error box
+                            print "Password does not match"
+                        pass
+                else:
+                    dlg = PasswordDialog(True)
+                    dlg.run()
+                    password = dlg.get_password()
+                    print config.get_name()
+                    config.set_password(password)
+            result = SyncCrypt()
+            result.set_password(password)
+            crypt_map[name] = result
+        return result
+
     def get_directories(self):
         """
         Returns:
@@ -128,6 +166,19 @@ class MainWindow(object):
         iterator = widget.get_active_iter()
         config_name = model.get_value(iterator, 0)
         return self._config_list.get_entry(config_name)
+
+    def needs_password(self):
+        """
+        checks if a password is required
+        Returns:
+        - True:  password is required
+        - False: no password required
+        """
+        result = False
+        config = self.get_config()
+        if config:
+            result = config.get_value(CONFIG_KEY_ENCRYPTION)
+        return result
 
     def on_add_directory(self, widget):
         """
@@ -169,8 +220,11 @@ class MainWindow(object):
         - widget
           widget that triggered the event
         """
-        dialog = ProgressDialog(self.get_directories(), self.get_config())
-        dialog.run()
+        crypt = None
+        if self.needs_password():
+            crypt = self.init_crypt()
+        progress_dlg = ProgressDialog(self.get_directories(), self.get_config(), crypt)
+        progressdlg.run()
 
     def on_exit(self, widget):
         """
@@ -208,6 +262,7 @@ class ProgressDialog(object):
         self._directories_current = 0
         self._files_count = 0
         self._files_current = 0
+        self._Thread = SyncThread(self)
 
     def init_widget_tree(self):
         """
@@ -258,7 +313,6 @@ class ProgressDialog(object):
         runs the dialog
         """
         widget = self._widget_tree.get_widget("progressdialog")
-        self._thread = SyncThread(self)
         self._thread.start()
         widget.run()
 
@@ -387,9 +441,6 @@ class SyncThread(Thread):
         - directory
           directory to synchronize
         """
-        d = PasswordDialog(True)
-        d.run()
-        print d.get_password()
         dlg = self._progressdialog
         config = dlg.get_config()
         # TODO: implement synchronization
@@ -424,30 +475,6 @@ class SyncThread(Thread):
             #         syncronize(subdir, output, True)
         processor.shutdown()
 
-    def needs_password(self, processor, config):
-        """
-        checks if a password is required
-        Parameters:
-        - processor
-          processor to use
-        - config
-          config to use
-        Returns:
-        - True:  password is required
-        - False: no password required
-        """
-        result = False
-        encryptionflag = config.get_value(CONFIG_KEY_ENCRYPTION)
-        if encryptionflag:
-            if encryptionflag.lower().strip() == "true":
-                for action in processor.get_actions():
-                    if action.get_action == ACTION_UPLOAD:
-                        result = True
-                        break
-        else:
-            if processor.needs_encryption():
-                result = False
-        return result
 
     def init_crypt(self, config):
         """
@@ -498,25 +525,36 @@ class PasswordDialog(object):
         - repeat_flag
           flag if a repeat input of the password is required
         """
+        self._repeat_flag = repeat_flag
+        self._dialog = None
         self._password = None
-        self._widget_tree = self.init_widget_tree(repeat_flag)
+        self._widget_tree = None
+        self._label_heading = None
+        self._label_password_2 = None
+        self._entry_password_1 = None
+        self._entry_password_2 = None
+        self.init_widgets(repeat_flag)
 
-    def init_widget_tree(self, repeat_flag):
+    def init_widgets(self, repeat_flag):
         """
         initializes the widget tree
          Parameters:
         - repeat_flag
           flag if a repeat input of the password is required
-        Returns:
-        - created widget tree
         """
         gladefile = "simplesync.glade"
         windowname = "passworddialog"
-        widget_tree = gtk.glade.XML(gladefile, windowname) 
+        self._widget_tree = gtk.glade.XML(gladefile, windowname)
+        self._dialog = self._widget_tree.get_widget("passworddialog")
+        self._label_heading = self._widget_tree.get_widget("label_heading")
+        self._label_password_2 = self._widget_tree.get_widget("label_password_2")
+        self._entry_password_1 = self._widget_tree.get_widget("entry_password_1")
+        self._entry_password_1.set_visibility(False)
+        self._entry_password_2 = self._widget_tree.get_widget("entry_password_2")
+        self._entry_password_2.set_visibility(False)
         dic = { "on_button_ok_clicked" : self.on_button_ok_clicked,
                 "on_button_cancel_clicked" : self.on_button_cancel_clicked }
-        # widget_tree.signal_autoconnect(dic)
-        return widget_tree
+        self._widget_tree.signal_autoconnect(dic)
 
     def get_password(self):
         """
@@ -539,9 +577,27 @@ class PasswordDialog(object):
         - widget
           widget that triggered the event
         """
-        self._password = "ok"
-        dlg = self._widget_tree.get_widget("passworddialog")
-        dlg.destroy()
+        self._password = None
+        password_1 = self._entry_password_1.get_text()
+        password_2 = self._entry_password_2.get_text()
+        if self._repeat_flag:
+            print len(password_1)
+            if password_1 == password_2 and len(password_1) > 0:
+                self._password = password_1
+            else:
+                if len(password_1) == 0 and len(password_2) == 0:
+                    error_dialog = gtk.MessageDialog(type=gtk.MESSAGE_ERROR, 
+                        buttons=gtk.BUTTONS_OK,
+                        message_format='No password entered')
+                    error_dialog.run()
+                else:
+                    error_dialog = gtk.MessageDialog(type=gtk.MESSAGE_ERROR, 
+                        buttons=gtk.BUTTONS_OK,
+                        message_format='Entered Passwords don\'t match!')
+                    error_dialog.run()
+        if self._password:
+            dlg = self._widget_tree.get_widget("passworddialog")
+            dlg.destroy()
 
     def on_button_cancel_clicked(self, widget):
         """
