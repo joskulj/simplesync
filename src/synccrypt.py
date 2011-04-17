@@ -167,7 +167,7 @@ class SyncCrypt(object):
         - key
           password to set
         """
-        self._key = key
+        self._key = normalize_key(key)
 
     def enter_password(self, repeat=False):
         """

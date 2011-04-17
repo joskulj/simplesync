@@ -127,7 +127,6 @@ class MainWindow(object):
         result = None
         password = None
         config = self.get_config()
-        print config.get_name()
         if config:
             name = config.get_name()
             if crypt_map.has_key(name):
@@ -403,12 +402,10 @@ class ProgressDialog(object):
         widget = self._widget_tree.get_widget("textview_detail")
         buf = widget.get_buffer()
         count = buf.get_char_count()
-        print count
         text = ""
         if count > 0:
             text = text + "\n"
         text = text + line
-        print text
         iterator = buf.get_iter_at_offset(count)
         buf.insert(iterator, text)
 
@@ -560,7 +557,6 @@ class PasswordDialog(object):
         self._running = True
         while self._running:
             widget.run()
-        print self._result
         return self._result
 
     def on_button_ok_clicked(self, widget):
@@ -574,7 +570,6 @@ class PasswordDialog(object):
         password_1 = self._entry_password_1.get_text()
         password_2 = self._entry_password_2.get_text()
         if self._repeat_flag:
-            print len(password_1)
             if password_1 == password_2 and len(password_1) > 0:
                 self._password = password_1
                 self._result = True
