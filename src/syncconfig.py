@@ -88,7 +88,7 @@ class SyncConfig(object):
         - False: password doesn't match
         """
         result = False
-        if self._crypt_key:
+        if self._crypt_key and password:
             crypt_password = crypt.crypt(password, self._crypt_key)
             if crypt_password == self._password:
                 result = True
