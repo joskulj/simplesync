@@ -224,7 +224,7 @@ class SyncServer(ErrorLog):
           optional SyncCrypt instance to use
         """
         if self._instance:
-            self._instance.download(fileproperty, synncrypt)
+            self._instance.download(fileproperty, synccrypt)
         else:
             self.error("download() failed. No server instance.")
 
@@ -346,7 +346,6 @@ class SyncFileServer(object):
         - synccrypt
           optional SyncCrypt instance
         """
-        # TODO: implement encryption
         success = True
         relativepath = fileproperty.get_path()
         if fileproperty.is_directory():
@@ -379,12 +378,12 @@ class SyncFileServer(object):
             try:
                 origpath = None
                 if synccrypt:
-                    origdestpath = destpaath
+                    origdestpath = destpath
                     destpath = destpath + ENCRYPTION_EXTENSION
                 shutil.copyfile(srcpath, destpath)
                 if synccrypt:
                     try:
-                        synccrypt.decrypt(destpath)
+                        synccrypt.decrypt_file(destpath)
                     except:
                         message = "Unable to decrypt: " + destpath
                         self._parent.error(message)

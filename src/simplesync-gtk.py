@@ -480,10 +480,12 @@ class SyncThread(Thread):
         while processor.has_open_actions():
             action = processor.get_action_title()
             dlg.set_file(action)
+            dlg.add_detail_line(action)
             processor.process_next_action()
             if server.has_errors():
                 for error in server.get_errors():
-                    # output.output("ERROR: " + error)
+                    detail_line = " ERROR: %s" % error
+                    dlg.add_detail_line(detail_line)
                     server.clear_errors()
             # if recursive:
             #     for subdir in get_subdirectories(directory):
