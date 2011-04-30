@@ -527,6 +527,7 @@ class PasswordDialog(object):
         windowname = "passworddialog"
         self._widget_tree = gtk.glade.XML(gladefile, windowname)
         self._dialog = self._widget_tree.get_widget("passworddialog")
+        self._button_ok = self._widget_tree.get_widget("button_ok")
         self._label_heading = self._widget_tree.get_widget("label_heading")
         self._label_password_2 = self._widget_tree.get_widget("label_password_2")
         self._entry_password_1 = self._widget_tree.get_widget("entry_password_1")
@@ -534,10 +535,12 @@ class PasswordDialog(object):
         self._entry_password_2 = self._widget_tree.get_widget("entry_password_2")
         self._entry_password_2.set_visibility(False)
         dic = { "on_button_ok_clicked" : self.on_button_ok_clicked,
-                "on_button_cancel_clicked" : self.on_button_cancel_clicked }
+                "on_button_cancel_clicked" : self.on_button_cancel_clicked,
+                "on_entry_activate" : self.on_entry_activate }
         self._widget_tree.signal_autoconnect(dic)
         if not repeat_flag:
             self._label_heading.set_text("Please enter your Password!")
+            self._entry_password_1.set_activates_default(True)
             self._label_password_2.set_visible(False)
             self._entry_password_2.set_visible(False)
 
@@ -560,6 +563,20 @@ class PasswordDialog(object):
         while self._running:
             widget.run()
         return self._result
+
+    def on_entry_activate(self, widget):
+        """
+        handles the activate event
+        - widget
+          widget that triggered the event
+        """
+        if widget.get_name() == "entry_password_1":
+            if not self._repeat_flag:
+                self._button_ok.clicked()
+            else:
+                self._entry_password_2.grab_focus()
+        else:
+            self._button_ok.clicked()
 
     def on_button_ok_clicked(self, widget):
         """

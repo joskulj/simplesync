@@ -373,6 +373,7 @@
                     <property name="invisible_char">&#x25CF;</property>
                     <property name="width_chars">12</property>
                     <property name="invisible_char_set">True</property>
+                    <signal name="activate" handler="on_entry_activate"/>
                   </widget>
                   <packing>
                     <property name="left_attach">1</property>
@@ -387,6 +388,7 @@
                     <property name="invisible_char">&#x25CF;</property>
                     <property name="width_chars">12</property>
                     <property name="invisible_char_set">True</property>
+                    <signal name="activate" handler="on_entry_activate"/>
                   </widget>
                   <packing>
                     <property name="left_attach">1</property>
