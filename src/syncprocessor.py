@@ -378,21 +378,25 @@ class SyncProcessor(object):
         Returns:
         - list of merged PropertyEntries
         """
+        debug("entering SyncProcessor._merge_properties()")
         propertylist = []
         propertydict = {}
         self._synclocal.read_directory(self._directory)
         for prop in self._synclocal.get_properties():
             entry = PropertyEntry(prop, None)
             propertylist.append(entry)
+            debug_value("local property", prop.get_name())
             propertydict[prop.get_name()] = entry
         self._syncserver.connect()
         self._syncserver.load_meta()
         for prop in self._syncserver.get_property_list():
             name = prop.get_name()
+            debug_value("server property", name)
             if name in propertydict.keys():
                 entry = propertydict[name]
                 entry.set_server_property(prop)
             else:
                 entry = PropertyEntry(None, prop)
                 propertylist.append(entry)
+        debug("exiting SyncProcessor._merge_properties()")
         return propertylist

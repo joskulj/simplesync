@@ -299,43 +299,63 @@ class SyncFileServer(object):
         - synccrypt
           optional SyncCrypt instance
         """
+        debug("entering SynFileServer.upload()")
         success = False
         if fileproperty.is_directory():
             # directories are not uploaded
+            debug("is directory")
             success = True
         else:
             # create source path
             relativepath = fileproperty.get_path()
+            debug_value("relativepath", relativepath)
             root = self._parent.get_local().get_root()
+            debug_value("root", root)
             srcpath = root + relativepath
+            debug_value("srcpath", srcpath)
             # create destination path
             destdirectory = self._serverdirectory
+            debug_value("destdirectory", destdirectory)
             destname = create_hash(relativepath)
+            debug_value("destname", destname)
             destpath = os.path.join(destdirectory, destname)
+            debug_value("destpath", destpath)
             # copy file
             success = True
             try:
                 if synccrypt:
                     try:
+                        debug("encrypt file")
                         cryptpath = synccrypt.encrypt_file(srcpath)
+                        debug("encrypting finished.")
                     except:
+                        debug(str(sys.exc_info()[0]))
                         message = "Unable to encrypt: " + srcpath
                         self._parent.error(message)
                     srcpath = cryptpath
+                    debug_value("srcpath", srcpath)
+                debug("copy file")
                 shutil.copyfile(srcpath, destpath)
+                debug("copying file finished.")
                 if synccrypt:
                     try:
+                        debug("remove temporary file.")
                         os.remove(srcpath)
+                        debug("removing temporary file finished.")
                     except OSError:
+                        debug(str(sys.exc_info()[0]))
                         message = "Unable to delete: " + srcpath
                         self._parent.error(message)
             except:
+                debug(str(sys.exc_info()[0]))
                 message = "Unable to upload: " + srcpath
                 self._parent.error(message)
                 success = False
         # update meta data
         if success:
+            debug("update property")
             self._parent.update_property(fileproperty)
+        debug("exiting SyncFileServer.upload()")
 
     def download(self, fileproperty, synccrypt):
         """
@@ -447,7 +467,9 @@ class SyncFileServer(object):
         debug("entering SyncFileServer.load_meta()") 
         self._parent.clear_properties()
         directory = self._serverdirectory
+        debug_value("serverdirectory", directory)
         fname = self.get_meta_filename()
+        debug_value("meta_filename", fname)
         propertylist = load_property_file(directory, fname)
         for p in propertylist:
             self._parent.append_property(p)

@@ -100,7 +100,7 @@ def load_property_file(directory, filename):
     Returns:
     - list of loaded properties
     """
-    debug("entering load_property_name()")
+    debug("entering load_property_file()")
     debug_value("directory", directory)
     debug_value("filename", filename)
     propertylist = []
