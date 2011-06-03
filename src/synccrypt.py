@@ -100,7 +100,7 @@ def encrypt_file(srcfilename, destfilename, key, chunksize=64*1024):
             break
         elif len(chunk) % 16 != 0:
             chunk += ' ' * (16 - len(chunk) % 16)
-            destfile.write(encryptor.encrypt(chunk))
+        destfile.write(encryptor.encrypt(chunk))
     srcfile.close()
     destfile.close()
 
@@ -225,3 +225,4 @@ class SyncCrypt(object):
             self.enter_password()
         decrypt_file(filename, destfilename, self._key)
         return destfilename
+

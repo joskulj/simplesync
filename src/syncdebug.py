@@ -18,6 +18,9 @@ import sys
 
 from cStringIO import StringIO
 
+DEBUG_LEVEL_INFO = "INFO"
+DEBUG_LEVEL_ERROR = "ERROR"
+
 debug_flag = None
 error_flag = None
 
@@ -57,14 +60,16 @@ def open_log_file():
         error_flag = True
     return fd
 
-def log_line(line):
+def log_line(line, level=DEBUG_LEVEL_INFO):
     """
     logs a line
     Parameters:
     - line
       line to log
+    - level
+      debug level to use
     """
-    logline = "[DEBUG] " + line + "\n"
+    logline = "[%s] %s\n" % (level, line)
     success = True
     fd = open_log_file()
     if fd != None:
@@ -104,6 +109,16 @@ def debug(line):
     """
     if get_debug_flag():
         log_line(line)
+
+def debug_error(line):
+    """
+    debugs a line at error level
+    Parameters:
+    - line
+      line to debug
+    """
+    if get_debug_flag():
+        log_line(line, DEBUG_LEVEL_ERROR)
 
 def debug_value(label, value):
     """

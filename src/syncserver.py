@@ -126,12 +126,25 @@ class SyncServer(ErrorLog):
         - file property
           file property to update
         """
+        debug("entering SyncServer.update_property()")
         name = fileproperty.get_name()
         if name in self._dict.keys():
+            debug("updating existing property")
             existingproperty = self._dict[name]
             existingproperty.set_values(fileproperty)
         else:
+            debug("adding new property")
             self.append_property(fileproperty)
+        if get_debug_flag():
+            for fileproperty in self._list:
+                debug_value("fileproperty.name", fileproperty.get_name())
+                debug_value("fileproperty.path", fileproperty.get_path())
+                debug_value("fileproperty.hostname", fileproperty.get_hostname())
+                debug_value("fileproperty.timestamp", fileproperty.get_timestamp())
+                debug_value("fileproperty.checksum", fileproperty.get_checksum())
+                debug_value("fileproperty.state", fileproperty.get_state())
+                debug_value("fileproperty.type", fileproperty.get_type())
+        debug("exiting SyncServer.update_property()")
 
     def get_property_list(self):
         """
@@ -327,6 +340,7 @@ class SyncFileServer(object):
                     try:
                         debug("encrypt file")
                         cryptpath = synccrypt.encrypt_file(srcpath)
+                        fileproperty.set_encrypted(True)
                         debug("encrypting finished.")
                     except:
                         debug(str(sys.exc_info()[0]))
@@ -366,33 +380,46 @@ class SyncFileServer(object):
         - synccrypt
           optional SyncCrypt instance
         """
+        debug("entering SyncFileServer.download()")
         success = True
         relativepath = fileproperty.get_path()
+        debug_value("relativepath", relativepath)
         if fileproperty.is_directory():
+            debug("is directory")
             # create directory path
             root = self._parent.get_local().get_root()
+            debug_value("root", root)
             dirpath = root + relativepath
-            dirpath = root + relativepath
+            debug_value("dirpath", dirpath)
             # check if directory already exists
             exist = os.path.exists(dirpath)
+            debug_value("exist", exist)
             isdir = os.path.isdir(dirpath)
+            debug_value("isdir", isdir)
             if not exist and not isdir:
                 # create the directory
                 success = True
                 try:
+                    debug("make directory")
                     os.mkdir(dirpath)
                 except OSError:
                     message = "Unable to create directory: " + dirpath
+                    debug_error(message)
                     self._parent.error(message)
                     success =  False
         else:
             # create source path
             srcname = create_hash(relativepath)
+            debug_value("srcname", srcname)
             srcdirectory = self._serverdirectory
+            debug_value("srcdirectory", srcdirectory)
             srcpath = os.path.join(srcdirectory, srcname)
+            debug_value("srcpath", srcpath)
             # create destination path
             root = self._parent.get_local().get_root()
+            debug_value("root", root)
             destpath = root + relativepath
+            debug_value("destpath", destpath)
             # copy file
             success = True
             try:
@@ -400,27 +427,38 @@ class SyncFileServer(object):
                 if synccrypt:
                     origdestpath = destpath
                     destpath = destpath + ENCRYPTION_EXTENSION
+                    debug_value("destpath", destpath)
+                debug("copy file")
                 shutil.copyfile(srcpath, destpath)
+                debug("copying file finished")
                 if synccrypt:
                     try:
+                        debug("decrypt file")
                         synccrypt.decrypt_file(destpath)
+                        debug("decrypting file finished.")
                     except:
                         message = "Unable to decrypt: " + destpath
+                        debug_error(message)
                         self._parent.error(message)
                     if os.path.exists(origdestpath):
                         try:
+                            debug("remove temporary path")
                             os.remove(destpath)
                         except OSError:
                             message = "Unable to delete: " + destpath
+                            debug_error(message)
                             self._parent.error(message)
             except:
                 message = "Unable to download: " + srcpath
+                debug_error(message)
                 self._parent.error(message)
                 success = False
         # update meta data
         if success:
+            debug("update property")
             self._parent.get_local().update_property(fileproperty)
-
+        debug("entering SyncFileServer.download()")
+ 
     def delete(self, fileproperty):
         """
         deletes a file from the server
