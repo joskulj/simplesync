@@ -17,6 +17,7 @@ import os
 import os.path
 import re
 import socket
+import stat
 import sys
 
 from cStringIO import StringIO
@@ -173,6 +174,8 @@ def save_property_file(directory, filename, propertylist):
                 f.write(p.get_property_string())
             f.write(END_TAG)
             f.close()
+			flag = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
+			os.chmod(filename, flag)
             success = True
         else:
             success = False
