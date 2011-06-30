@@ -168,6 +168,19 @@ class SyncConfigList(object):
         self._list = []
         self._dict = {}
         self._loaded = self._load_config_file()
+        if len(self._list) == 0:
+            self.create_default_entry()
+
+    def create_default_entry(self):
+        """
+		creates a default entry
+		"""
+        entry = SyncConfig("default")
+        entry.set_value("type", "filesystem")
+        entry.set_value("root", "/home/user")
+        entry.set_value("server-directory", "/mnt/server")
+        self.add_entry(entry)
+        self.save()
 
     def get_entries(self):
         """
