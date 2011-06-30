@@ -352,11 +352,10 @@ class SyncFileServer(object):
                 debug("copy file")
                 shutil.copyfile(srcpath, destpath)
                 debug("copying file finished.")
-				debug("change permissions")
-				flag = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
-				os.chmod(destpath, flag)
-	os.chmod(fpath, flag)
-
+                debug("change permissions")
+                flag = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
+                os.chmod(destpath, flag)
+                os.chmod(fpath, flag)
                 if synccrypt:
                     try:
                         debug("remove temporary file.")
